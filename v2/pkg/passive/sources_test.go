@@ -37,7 +37,7 @@ var (
 		"quake",
 		"rapiddns",
 		"redhuntlabs",
-		"riddler",
+		// "riddler", // failing due to cloudfront protection
 		"robtex",
 		"securitytrails",
 		"shodan",
@@ -53,6 +53,7 @@ var (
 		// "threatminer",
 		// "reconcloud",
 		"builtwith",
+		"hudsonrock",
 	}
 
 	expectedDefaultSources = []string{
@@ -77,7 +78,7 @@ var (
 		"quake",
 		"redhuntlabs",
 		"robtex",
-		"riddler",
+		// "riddler", // failing due to cloudfront protection
 		"securitytrails",
 		"shodan",
 		"virustotal",
@@ -96,7 +97,6 @@ var (
 		"bufferover",
 		"certspotter",
 		"crtsh",
-		"dnsdumpster",
 		"dnsdb",
 		"digitorus",
 		"hackertarget",

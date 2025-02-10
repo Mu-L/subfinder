@@ -33,11 +33,10 @@ var (
 		"hackertarget",
 		"intelx",
 		"netlas",
-		"passivetotal",
 		"quake",
 		"rapiddns",
 		"redhuntlabs",
-		"riddler",
+		// "riddler", // failing due to cloudfront protection
 		"robtex",
 		"securitytrails",
 		"shodan",
@@ -53,6 +52,7 @@ var (
 		// "threatminer",
 		// "reconcloud",
 		"builtwith",
+		"hudsonrock",
 	}
 
 	expectedDefaultSources = []string{
@@ -73,11 +73,10 @@ var (
 		"fullhunt",
 		"hackertarget",
 		"intelx",
-		"passivetotal",
 		"quake",
 		"redhuntlabs",
 		"robtex",
-		"riddler",
+		// "riddler", // failing due to cloudfront protection
 		"securitytrails",
 		"shodan",
 		"virustotal",
@@ -96,11 +95,9 @@ var (
 		"bufferover",
 		"certspotter",
 		"crtsh",
-		"dnsdumpster",
 		"dnsdb",
 		"digitorus",
 		"hackertarget",
-		"passivetotal",
 		"securitytrails",
 		"virustotal",
 		"leakix",

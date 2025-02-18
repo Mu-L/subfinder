@@ -8,11 +8,11 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/projectdiscovery/gologger"
+	contextutil "github.com/projectdiscovery/utils/context"
 	fileutil "github.com/projectdiscovery/utils/file"
 	mapsutil "github.com/projectdiscovery/utils/maps"
 
@@ -34,6 +34,7 @@ type Runner struct {
 // the configuration options, configuring sources, reading lists
 // and setting up loggers, etc.
 func NewRunner(options *Options) (*Runner, error) {
+	options.ConfigureOutput()
 	runner := &Runner{options: options}
 
 	// Check if the application loading with any provider configuration, then take it
@@ -73,7 +74,8 @@ func NewRunner(options *Options) (*Runner, error) {
 
 // RunEnumeration wraps RunEnumerationWithCtx with an empty context
 func (r *Runner) RunEnumeration() error {
-	return r.RunEnumerationWithCtx(context.Background())
+	ctx, _ := contextutil.WithValues(context.Background(), contextutil.ContextArg("All"), contextutil.ContextArg(strconv.FormatBool(r.options.All)))
+	return r.RunEnumerationWithCtx(ctx)
 }
 
 // RunEnumerationWithCtx runs the subdomain enumeration flow on the targets specified
@@ -105,18 +107,21 @@ func (r *Runner) RunEnumerationWithCtx(ctx context.Context) error {
 
 // EnumerateMultipleDomains wraps EnumerateMultipleDomainsWithCtx with an empty context
 func (r *Runner) EnumerateMultipleDomains(reader io.Reader, writers []io.Writer) error {
-	return r.EnumerateMultipleDomainsWithCtx(context.Background(), reader, writers)
+	ctx, _ := contextutil.WithValues(context.Background(), contextutil.ContextArg("All"), contextutil.ContextArg(strconv.FormatBool(r.options.All)))
+	return r.EnumerateMultipleDomainsWithCtx(ctx, reader, writers)
 }
 
 // EnumerateMultipleDomainsWithCtx enumerates subdomains for multiple domains
 // We keep enumerating subdomains for a given domain until we reach an error
 func (r *Runner) EnumerateMultipleDomainsWithCtx(ctx context.Context, reader io.Reader, writers []io.Writer) error {
+	var err error
 	scanner := bufio.NewScanner(reader)
 	ip, _ := regexp.Compile(`^([0-9\.]+$)`)
 	for scanner.Scan() {
-		domain, err := sanitize(scanner.Text())
-		isIp := ip.MatchString(domain)
-		if errors.Is(err, ErrEmptyInput) || (r.options.ExcludeIps && isIp) {
+		domain := preprocessDomain(scanner.Text())
+		domain = replacer.Replace(domain)
+
+		if domain == "" || (r.options.ExcludeIps && ip.MatchString(domain)) {
 			continue
 		}
 
@@ -132,7 +137,7 @@ func (r *Runner) EnumerateMultipleDomainsWithCtx(ctx context.Context, reader io.
 				return err
 			}
 
-			err = r.EnumerateSingleDomainWithCtx(ctx, domain, append(writers, file))
+			_, err = r.EnumerateSingleDomainWithCtx(ctx, domain, append(writers, file))
 
 			file.Close()
 		} else if r.options.OutputDirectory != "" {
@@ -150,11 +155,11 @@ func (r *Runner) EnumerateMultipleDomainsWithCtx(ctx context.Context, reader io.
 				return err
 			}
 
-			err = r.EnumerateSingleDomainWithCtx(ctx, domain, append(writers, file))
+			_, err = r.EnumerateSingleDomainWithCtx(ctx, domain, append(writers, file))
 
 			file.Close()
 		} else {
-			err = r.EnumerateSingleDomainWithCtx(ctx, domain, writers)
+			_, err = r.EnumerateSingleDomainWithCtx(ctx, domain, writers)
 		}
 		if err != nil {
 			return err
